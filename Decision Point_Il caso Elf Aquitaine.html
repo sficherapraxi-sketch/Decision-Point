@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DECISION POINT - PRAXI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a4971;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            max-height: 800px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 16/9;
+        }
+
+        .quiz-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #1a4971;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 180px;
+            height: auto;
+            filter: brightness(1.1);
+        }
+
+        /* Schermata introduttiva */
+        .intro-screen {
+            display: block;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intro-screen.hidden {
+            display: none;
+        }
+
+        .intro-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1a4971;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .intro-subtitle {
+            font-size: 22px;
+            color: #555;
+            margin-bottom: 30px;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        .rules-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .rules-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            text-align: justify;
+        }
+
+        .variables-highlight {
+            background: rgba(26, 73, 113, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #1a4971;
+        }
+
+        .variables-highlight strong {
+            color: #1a4971;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #1a4971 0%, #2a5a82 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(26, 73, 113, 0.3);
+            align-self: center;
+            flex-shrink: 0;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(26, 73, 113, 0.4);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a4971, #2a5a82);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .quiz-screen.show {
+            display: flex;
+        }
+
+        .scenario {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scenario-header {
+            flex-shrink: 0;
+        }
+
+        .scenario-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a4971;
+            margin-bottom: 15px;
+        }
+
+        .scenario-description {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #555;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #1a4971;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 18px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(26, 73, 113, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .option:hover {
+            border-color: #1a4971;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26, 73, 113, 0.15);
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+        .option.selected {
+            border-color: #1a4971;
+            background: linear-gradient(135deg, #1a4971 0%, #2a5a82 100%);
+            color: white;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #1a4971 0%, #2a5a82 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            pointer-events: none;
+            align-self: center;
+            flex-shrink: 0;
+        }
+
+        .next-btn.enabled {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .next-btn:hover.enabled {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(26, 73, 113, 0.3);
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .results.show {
+            display: flex;
+        }
+
+        .results-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a4971;
+            margin-bottom: 25px;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            background: linear-gradient(135deg, #1a4971 0%, #2a5a82 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 180px;
+            box-shadow: 0 8px 20px rgba(26, 73, 113, 0.3);
+        }
+
+        .score-label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .results-description {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            border-left: 4px solid #1a4971;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(108, 117, 125, 0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .quiz-container {
+                height: 95vh;
+                aspect-ratio: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 20px 25px;
+            }
+            
+            .intro-title {
+                font-size: 28px;
+            }
+            
+            .scenario-title {
+                font-size: 20px;
+            }
+            
+            .score-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .logo {
+                width: 150px;
+            }
+
+            .quiz-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Schermata introduttiva -->
+        <div class="intro-screen" id="introScreen">
+            <div class="content-wrapper">
+                <div class="logo-container">
+                    <svg class="logo" viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="60" fill="#1a4971"/>
+                        <text x="150" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+                              text-anchor="middle" fill="white">PRAXI</text>
+                    </svg>
+                </div>
+                
+                <h1 class="intro-title">DECISION POINT</h1>
+                <p class="intro-subtitle">Il caso Elf Aquitaine</p>
+                
+                <div class="rules-container">
+                    <div class="rules-text">
+                        <strong>1975. Crisi petrolifera.</strong> I prezzi del petrolio esplodono, la pressione politica cresce e i giornali titolano ogni giorno sul rischio di recessione.
+                        <br><br>
+                        Siete nella stanza dei bottoni della <strong>Elf Aquitaine</strong>, la maggiore compagnia petrolifera francese. Siete un Dirigente della società e dovete valutare nuove tecnologie e decidere rapidamente quale strada intraprendere.
+                        <br><br>
+                        Ogni vostra scelta influenzerà due fattori:
+                        
+                        <div class="variables-highlight">
+                            <strong>Efficacia:</strong> la capacità di restare lucidi, evitando bias.<br>
+                            <strong>Efficienza:</strong> la rapidità nel decidere, senza paralisi da analisi o spreco di risorse.
+                        </div>
+                        
+                        Concludi la storia trovando un equilibrio fra le due dimensioni. Per ogni scenario potrai scegliere tra 3 opzioni diverse, ognuna rappresenta un approccio differente alla situazione.
+                    </div>
+                </div>
+                
+                <button class="start-btn" onclick="startQuiz()">Inizia il Test</button>
+            </div>
+        </div>
+
+        <!-- Schermata del quiz -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="content-wrapper">
+                <div class="logo-container">
+                    <svg class="logo" viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg" style="width: 120px;">
+                        <rect width="300" height="60" fill="#1a4971"/>
+                        <text x="150" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+                              text-anchor="middle" fill="white">PRAXI</text>
+                    </svg>
+                </div>
+                
+                <!-- Barra di progresso -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+
+                <!-- Contenitore per gli scenari -->
+                <div id="quizContent">
+                    <!-- Gli scenari verranno inseriti qui dinamicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Schermata dei risultati -->
+        <div class="results" id="results">
+            <div class="content-wrapper">
+                <div class="logo-container">
+                    <svg class="logo" viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg" style="width: 120px;">
+                        <rect width="300" height="60" fill="#1a4971"/>
+                        <text x="150" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" 
+                              text-anchor="middle" fill="white">PRAXI</text>
+                    </svg>
+                </div>
+                
+                <h2 class="results-title">I tuoi risultati</h2>
+                <div class="score-container">
+                    <div class="score-item">
+                        <div class="score-label">Efficacia</div>
+                        <div class="score-value" id="score1">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Efficienza</div>
+                        <div class="score-value" id="score2">0</div>
+                    </div>
+                </div>
+                <div class="results-description" id="resultsDescription">
+                    <!-- La descrizione dei risultati verrà inserita qui -->
+                </div>
+                <div class="button-group">
+                    <button class="restart-btn" onclick="restartQuiz()">Ripeti Test</button>
+                    <button class="back-btn" onclick="backToIntro()">Torna all'Inizio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dati del quiz dal file caricato
+        const quizData = [
+            {
+                title: "L'invenzione miracolosa",
+                description: "Avete una riunione con due inventori. Non hanno esperienza nel settore, ma affermano di aver creato un metodo unico al mondo: un aereo che può individuare giacimenti petroliferi dal cielo. Portano con sé mappe dettagliate e parlano con entusiasmo, facendo leva sul bisogno urgente di soluzioni per uscire dalla crisi.",
+                options: [
+                    {
+                        text: "Mi fido e avvio un test pilota: guadagno tempo.",
+                        scores: { efficacia: -30, efficienza: 20 }
+                    },
+                    {
+                        text: "Chiedo prove tecniche e verifiche indipendenti, a costo di allungare i tempi.",
+                        scores: { efficacia: 30, efficienza: -20 }
+                    },
+                    {
+                        text: "Accolgo la proposta solo come ipotesi, in attesa di ulteriori evidenze.",
+                        scores: { efficacia: 10, efficienza: -10 }
+                    }
+                ]
+            },
+            {
+                title: "La dimostrazione privata",
+                description: "Gli inventori organizzano una prova in un hangar a Tolosa. L'aereo usato è modesto, ma spiegano che il valore è nella strumentazione. Durante il volo, il monitor mostra mappe coerenti con giacimenti noti. Gli inventori commentano: \"Ecco la prova che il sistema funziona\". Un tecnico della Elf, a bassa voce, osserva che i dati potrebbero avere altre spiegazioni, ma non fornisce altre obiezioni.",
+                options: [
+                    {
+                        text: "Considero la dimostrazione convincente: i dati coincidono con la realtà, e questo basta per procedere.",
+                        scores: { efficacia: -30, efficienza: 25 }
+                    },
+                    {
+                        text: "Mi mostro interessato, ma chiedo altre prove comparative in zone meno conosciute.",
+                        scores: { efficacia: 30, efficienza: -20 }
+                    },
+                    {
+                        text: "Mi complimento con gli inventori e suggerisco di avviare una fase sperimentale limitata, così da non perdere tempo.",
+                        scores: { efficacia: 10, efficienza: 5 }
+                    }
+                ]
+            },
+            {
+                title: "La pressione politica",
+                description: "Dopo Tolosa arriva una telefonata da Parigi: \"Il Paese ha bisogno di fiducia. Mostrate che ci stiamo muovendo\". Alcuni colleghi ti dicono: \"Se aspettiamo troppo, perderemo l'occasione di fare la prima mossa\". Il Ministero propone di annunciare pubblicamente che la Elf sta sperimentando la nuova tecnologia. Come ti muovi?",
+                options: [
+                    {
+                        text: "Accetto: un annuncio rapido rafforzerebbe la nostra immagine di innovatori.",
+                        scores: { efficacia: -30, efficienza: 25 }
+                    },
+                    {
+                        text: "Suggerisco un comunicato generico, che parli di \"valutazioni in corso\".",
+                        scores: { efficacia: 5, efficienza: 10 }
+                    },
+                    {
+                        text: "Chiedo di rimandare: senza dati verificati al 100% rischiamo di bruciarci la reputazione.",
+                        scores: { efficacia: 30, efficienza: -20 }
+                    }
+                ]
+            },
+            {
+                title: "Il budget in gioco",
+                description: "Il CFO ti mostra i numeri: trivellazioni e prospezioni hanno già superato le previsioni di spesa. \"Se questa tecnologia funziona, riduciamo costi enormi. Ma se aspettiamo, qualcun altro ci passerà avanti\". Gli inventori intanto chiedono un finanziamento iniziale di 50 milioni di franchi. Quale strada prendi?",
+                options: [
+                    {
+                        text: "Approvo l'investimento: il rischio è alto, ma siamo tutti d'accordo che funzionerà.",
+                        scores: { efficacia: -30, efficienza: 25 }
+                    },
+                    {
+                        text: "Propongo un finanziamento iniziale di 10 milioni di franchi, valutando i futuri in base al risultato.",
+                        scores: { efficacia: 5, efficienza: 10 }
+                    },
+                    {
+                        text: "Rimando la decisione: non è il momento di autorizzare fondi.",
+                        scores: { efficacia: 30, efficienza: -20 }
+                    }
+                ]
+            },
+            {
+                title: "Sala riunioni",
+                description: "In sala riunioni tutti i dirigenti sono entusiasti. La Francia farà da apristrada a questa invenzione rivoluzionaria. A te sembra ancora tutto troppo bello per essere vero... Cosa fai?",
+                options: [
+                    {
+                        text: "Mi allineo al pensiero di gruppo, per non andare controcorrente.",
+                        scores: { efficacia: -25, efficienza: 15 }
+                    },
+                    {
+                        text: "Espongo apertamente i miei dubbi, a costo di dover discutere con tutti.",
+                        scores: { efficacia: 30, efficienza: -20 }
+                    },
+                    {
+                        text: "Cerco di capire se qualcun altro la pensa come me, ed è pronto a parlarne.",
+                        scores: { efficacia: 10, efficienza: 10 }
+                    }
+                ]
+            }
+        ];
+
+        // Variabili globali
+        let currentScenario = 0;
+        let scores = { efficacia: 0, efficienza: 0 };
+        let selectedOption = null;
+        let shuffledOptions = []; // Array per memorizzare l'ordine randomizzato
+
+        // Funzione per mescolare un array (Fisher-Yates shuffle)
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Avvia il quiz
+        function startQuiz() {
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.add('show');
+            initQuiz();
+        }
+
+        // Torna alla schermata introduttiva
+        function backToIntro() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizScreen').classList.remove('show');
+            document.getElementById('introScreen').classList.remove('hidden');
+        }
+
+        // Inizializza il quiz
+        function initQuiz() {
+            currentScenario = 0;
+            scores = { efficacia: 0, efficienza: 0 };
+            selectedOption = null;
+            shuffledOptions = [];
+            updateProgressBar();
+            showScenario();
+        }
+
+        // Mostra lo scenario corrente
+        function showScenario() {
+            const scenario = quizData[currentScenario];
+            
+            // Mescola le opzioni per questo scenario
+            const optionsWithIndex = scenario.options.map((option, index) => ({
+                ...option,
+                originalIndex: index
+            }));
+            
+            const shuffled = shuffleArray(optionsWithIndex);
+            shuffledOptions[currentScenario] = shuffled;
+            
+            const quizContent = document.getElementById('quizContent');
+            
+            quizContent.innerHTML = `
+                <div class="scenario">
+                    <div class="scenario-header">
+                        <h2 class="scenario-title">${scenario.title}</h2>
+                        <div class="scenario-description">${scenario.description}</div>
+                    </div>
+                    <div class="options" id="options">
+                        ${shuffled.map((option, index) => `
+                            <div class="option" onclick="selectOption(${index})" data-index="${index}">
+                                ${option.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-btn" id="nextBtn" onclick="nextScenario()">
+                        ${currentScenario < quizData.length - 1 ? 'Prossimo Scenario' : 'Mostra Risultati'}
+                    </button>
+                </div>
+            `;
+            
+            selectedOption = null;
+            updateNextButton();
+        }
+
+        // Seleziona un'opzione
+        function selectOption(index) {
+            // Rimuovi selezione precedente
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Seleziona la nuova opzione
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedOption = index;
+            updateNextButton();
+        }
+
+        // Aggiorna il pulsante "Avanti"
+        function updateNextButton() {
+            const nextBtn = document.getElementById('nextBtn');
+            if (selectedOption !== null) {
+                nextBtn.classList.add('enabled');
+            } else {
+                nextBtn.classList.remove('enabled');
+            }
+        }
+
+        // Vai al prossimo scenario
+        function nextScenario() {
+            if (selectedOption === null) return;
+            
+            // Ottieni l'opzione selezionata dall'array mescolato
+            const selectedOptionData = shuffledOptions[currentScenario][selectedOption];
+            scores.efficacia += selectedOptionData.scores.efficacia;
+            scores.efficienza += selectedOptionData.scores.efficienza;
+            
+            currentScenario++;
+            
+            if (currentScenario < quizData.length) {
+                updateProgressBar();
+                showScenario();
+            } else {
+                showResults();
+            }
+        }
+
+        // Aggiorna la barra di progresso
+        function updateProgressBar() {
+            const progress = (currentScenario / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // Mostra i risultati
+        function showResults() {
+            document.getElementById('quizScreen').classList.remove('show');
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.classList.add('show');
+            
+            // Aggiorna i punteggi
+            document.getElementById('score1').textContent = scores.efficacia;
+            document.getElementById('score2').textContent = scores.efficienza;
+            
+            // Genera descrizione dei risultati
+            generateResultsDescription();
+        }
+
+        // Genera la descrizione dei risultati
+        function generateResultsDescription() {
+            const totalEfficacia = scores.efficacia;
+            const totalEfficienza = scores.efficienza;
+            
+            let description = "";
+            
+            if (totalEfficacia > totalEfficienza) {
+                if (Math.abs(totalEfficacia) >= Math.abs(totalEfficienza) * 2) {
+                    description = `<strong>Analista strategico</strong><br><br>
+                    La tua forza è la lucidità. Riesci a mantenere un approccio critico anche sotto pressione, individuando rischi e incoerenze che altri trascurano. Sai andare oltre le apparenze e ragionare in profondità, garantendo decisioni fondate su analisi solide. Questo ti rende un punto di riferimento nei contesti complessi.<br><br>
+                    <em>Area di sviluppo:</em> Potresti allenarti a prendere decisioni con maggiore rapidità: il rischio è rimanere bloccato in una valutazione troppo accurata che rallenta l'azione.`;
+                } else {
+                    description = `<strong>Decisore accorto</strong><br><br>
+                    Sai bilanciare spirito critico e capacità di agire. Riesci a mettere in discussione le informazioni quando serve, senza perdere il passo con il contesto. Questo equilibrio ti permette di prendere decisioni ponderate senza restare intrappolato nell'analisi.<br><br>
+                    <em>Area di sviluppo:</em> Continua a coltivare la capacità di distinguere i momenti in cui serve velocità da quelli che richiedono maggiore accuratezza.`;
+                }
+            } else if (totalEfficienza > totalEfficacia) {
+                if (Math.abs(totalEfficienza) >= Math.abs(totalEfficacia) * 2) {
+                    description = `<strong>Esecutore rapido</strong><br><br>
+                    La tua forza è la prontezza. Sai decidere in fretta e far muovere le cose, anche in condizioni di incertezza. La tua efficienza ti rende efficace in situazioni di emergenza o quando il tempo è cruciale. Il rischio, però, è quello di affidarti troppo alle impressioni immediate.<br><br>
+                    <em>Area di sviluppo:</em> Lavora sull'allenamento al pensiero critico: la velocità è un vantaggio solo se accompagnata da scelte fondate.`;
+                } else {
+                    description = `<strong>Pragmatico equilibrato</strong><br><br>
+                    Mostri una buona capacità di decidere rapidamente, senza però rinunciare del tutto alla riflessione critica. Sai valutare i pro e i contro in tempi brevi, trovando un compromesso tra velocità e accuratezza. Sei pratico e orientato all'azione.<br><br>
+                    <em>Area di sviluppo:</em> Potresti rafforzare ulteriormente la capacità di analisi, così da evitare decisioni guidate troppo dall'urgenza.`;
+                }
+            } else {
+                description = `<strong>Profilo Bilanciato</strong><br><br>
+                Riesci a mantenere un equilibrio quasi perfetto tra efficacia e efficienza. Sai quando accelerare e quando fermarti a riflettere, adattando il tuo stile decisionale al contesto. Questa flessibilità è una risorsa preziosa nei team e nelle organizzazioni.<br><br>
+                <em>Area di sviluppo:</em> Mantieni questa capacità di adattamento, ma allenati a riconoscere i segnali che ti dicono quando spingere più sull'analisi o più sulla rapidità.`;
+            }
+            
+            document.getElementById('resultsDescription').innerHTML = description;
+        }
+
+        // Riavvia il quiz
+        function restartQuiz() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quizScreen').classList.add('show');
+            initQuiz();
+        }
+    </script>
+</body>
+</html>
